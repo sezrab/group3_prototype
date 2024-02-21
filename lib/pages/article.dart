@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:group3_prototype/models/article.dart';
 
-class Article extends StatelessWidget {
+class ArticlePage extends StatelessWidget {
   final ArticleData article;
-  const Article({super.key, required this.article});
+  const ArticlePage({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +32,9 @@ class Article extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             fontWeight: FontWeight.bold,
                           )),
-                  SizedBox(height: 10),
-
+                  const SizedBox(height: 10),
                   Text(
-                    article.author,
+                    article.authors.join(', '),
                     style: Theme.of(context).textTheme.titleSmall!.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
@@ -76,7 +75,7 @@ class Article extends StatelessWidget {
                     child: Divider(),
                   ),
                   Text(
-                    article.description,
+                    article.abstract,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Spacer(),

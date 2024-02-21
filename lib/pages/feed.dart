@@ -1,104 +1,172 @@
 import 'package:flutter/material.dart';
-import 'package:group3_prototype/dummyData.dart';
 import 'package:group3_prototype/models/article.dart';
 import 'package:group3_prototype/pages/article.dart';
+import 'package:group3_prototype/providers/api.dart';
+import 'package:provider/provider.dart';
 
-class Feed extends StatelessWidget {
+class Feed extends StatefulWidget {
   const Feed({super.key});
 
   @override
+  State<Feed> createState() => _FeedState();
+}
+
+class _FeedState extends State<Feed> {
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          // row with a search bar and a filter by dropdown.
-          // scrolling list of article cards.
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 50,
-                  child: TextField(
-                    textAlign: TextAlign.left,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    decoration: InputDecoration(
-                      hintText: 'Search',
-                      border: OutlineInputBorder(
-                        // color grey,
-                        borderSide: BorderSide(
-                          color: Colors.grey,
-                          width: 1.0,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
+    // get the feed from the API
+    Future<List<ArticleData>> feed =
+        Provider.of<APIProvider>(context).getFeed();
+    return FutureBuilder(
+        future: feed,
+        builder:
+            (BuildContext context, AsyncSnapshot<List<ArticleData>> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(':(', style: Theme.of(context).textTheme.titleLarge),
+                  Text('something went wrong',
+                      style: Theme.of(context).textTheme.bodyMedium),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {});
+                        },
+                        child: Text('Retry'),
                       ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                height: 50.0, // Assuming this is the height of the search bar
-
-                decoration: BoxDecoration(
-                  border: Border.all(
-                      color: Colors.grey,
-                      width:
-                          1.0), // Assuming this is the border style of the search bar
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                alignment: Alignment
-                    .center, // This will center the DropdownButton vertically
-                child: DropdownButtonHideUnderline(
-                  // This is to remove the default underline of the DropdownButton
-                  child: DropdownButton<String>(
-                    style: Theme.of(context).textTheme.bodyMedium,
-
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    isExpanded:
-                        false, // This is to make the DropdownButton take the full width of the Container
-                    value: 'Relevance',
-                    onChanged: (String? value) {},
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'Relevance',
-                        child: Text('Relevance'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Newest',
-                        child: Text('Date (newest)'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Oldest',
-                        child: Text('Date (oldest)'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Topic',
-                        child: Text('Topic'),
+                      ElevatedButton(
+                        child: Text('More info'),
+                        onPressed: () {
+                          // show dialog with error message and stack trace
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Error'),
+                                content: SingleChildScrollView(
+                                  child: ListBody(
+                                    children: <Widget>[
+                                      Text('Something went wrong'),
+                                      Text(snapshot.error.toString()),
+                                      Text(snapshot.stackTrace.toString()),
+                                    ],
+                                  ),
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: const Text('Close'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
                       ),
                     ],
                   ),
+                ],
+              ),
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: TextField(
+                          textAlign: TextAlign.left,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          decoration: InputDecoration(
+                            hintText: 'Search',
+                            border: OutlineInputBorder(
+                              // color grey,
+                              borderSide: BorderSide(
+                                color: Colors.grey,
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      height:
+                          50.0, // Assuming this is the height of the search bar
+
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: Colors.grey,
+                            width:
+                                1.0), // Assuming this is the border style of the search bar
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment
+                          .center, // This will center the DropdownButton vertically
+                      child: DropdownButtonHideUnderline(
+                        // This is to remove the default underline of the DropdownButton
+                        child: DropdownButton<String>(
+                          style: Theme.of(context).textTheme.bodyMedium,
+
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          isExpanded:
+                              false, // This is to make the DropdownButton take the full width of the Container
+                          value: 'Relevance',
+                          onChanged: (String? value) {},
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Relevance',
+                              child: Text('Relevance'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Newest',
+                              child: Text('Date (newest)'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Oldest',
+                              child: Text('Date (oldest)'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Topic',
+                              child: Text('Topic'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  ],
                 ),
-              )
-            ],
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView.builder(
-              itemCount: 20,
-              itemBuilder: (BuildContext context, int index) {
-                return ArticleCard(
-                  article: randomArticle(),
-                );
-              },
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return ArticleCard(article: snapshot.data![index]);
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-    );
+          );
+        });
   }
 }
 
@@ -108,15 +176,14 @@ class ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // limit description to 100 chars, then add "..."
-    String shortDescription = article.description.substring(0, 100);
-    if (article.description.length > 100) {
+    String shortDescription = article.abstract.substring(0, 100);
+    if (article.abstract.length > 100) {
       shortDescription += '...';
     }
 
     return GestureDetector(
       onTap: () {
-        var a = Article(article: article);
+        var a = ArticlePage(article: article);
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => a),
@@ -144,7 +211,8 @@ class ArticleCard extends StatelessWidget {
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
               Text(
-                article.author,
+                // join authors with commas
+                article.authors.join(', '),
                 style:
                     TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
