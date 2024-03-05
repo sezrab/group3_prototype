@@ -21,6 +21,7 @@ class MyAuthProvider with ChangeNotifier {
       },
     );
   }
+  String get email => user!.email!;
 
   @override
   void dispose() {

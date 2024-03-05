@@ -1,5 +1,16 @@
+import 'package:clipboard/clipboard.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:group3_prototype/models/article.dart';
+import 'package:group3_prototype/providers/api.dart';
+import 'package:group3_prototype/providers/firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+// import 'package:url_launcher/url_launcher.dart';
+// import 'dart:js' as js;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ArticlePage extends StatelessWidget {
   final ArticleData article;
@@ -7,8 +18,10 @@ class ArticlePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Column(
+    Provider.of<FirestoreProvider>(context, listen: false)
+        .setArticleRead(FirebaseAuth.instance.currentUser!.uid, article.id);
+    return Scaffold(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -27,7 +40,14 @@ class ArticlePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // back button
-
+                  // article.publishedAt (datetime object) as DD/MM/YYYY
+                  Text(
+                    article.publishedAt.toLocal().toString().split(' ')[0],
+                    style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                  ),
                   Text(article.title,
                       style: Theme.of(context).textTheme.titleLarge!.copyWith(
                             fontWeight: FontWeight.bold,
@@ -49,7 +69,7 @@ class ArticlePage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           // Spacer(),
-                          for (String tag in article.tags)
+                          for (String tag in article.tags.take(3))
                             Container(
                               margin: const EdgeInsets.only(right: 4),
                               padding: const EdgeInsets.all(3),
@@ -74,11 +94,15 @@ class ArticlePage extends StatelessWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: Divider(),
                   ),
-                  Text(
-                    article.abstract,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Text(
+                        article.abstract,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
                   ),
-                  Spacer(),
+                  // Spacer(),
                   Row(
                     children: [
                       Expanded(
@@ -91,7 +115,19 @@ class ArticlePage extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(5),
                               ),
                             ),
-                            onPressed: () {},
+                            onPressed: () async {
+                              if (kIsWeb) {
+                                await FlutterClipboard.copy(article.url);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Link copied to clipboard'),
+                                  ),
+                                );
+                              } else {
+                                Share.share(article.url,
+                                    subject: article.title);
+                              }
+                            },
                             child: Text(
                               'Share',
                               style: Theme.of(context)
@@ -145,8 +181,12 @@ class ArticlePage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(5),
                           ),
                         ),
-                        onPressed: () {
-                          // Button press logic
+                        onPressed: () async {
+                          if (kIsWeb) {
+                            // js.context.callMethod('open', [article.url]);
+                          } else {
+                            await launchUrlString(article.url);
+                          }
                         },
                         child: Text(
                           'Read',

@@ -6,7 +6,8 @@ class ArticleData {
   final String url;
   final DateTime publishedAt;
   final List<String> tags;
-
+  bool read = false;
+  late int relevance;
   ArticleData({
     required this.id,
     required this.title,

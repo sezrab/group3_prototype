@@ -5,6 +5,7 @@ import 'package:group3_prototype/pages/login.dart';
 import 'package:group3_prototype/pages/register.dart';
 import 'package:group3_prototype/providers/api.dart';
 import 'package:group3_prototype/providers/auth.dart';
+import 'package:group3_prototype/providers/firestore.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
@@ -26,6 +27,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<MyAuthProvider>(
           create: (_) => MyAuthProvider(),
+        ),
+        ChangeNotifierProvider<FirestoreProvider>(
+          create: (_) => FirestoreProvider(),
         ),
         ChangeNotifierProvider<APIProvider>(
           create: (_) => APIProvider(),
