@@ -6,6 +6,8 @@ class FirestoreProvider extends ChangeNotifier {
   int? _newsletterPeriod;
   String? _newsletterAddress;
   List<String> _interests = [];
+  List<int> _readArticles = [];
+  String uid = FirebaseAuth.instance.currentUser!.uid;
 
   // get interests
   Future<List<String>> getInterests(String uid) async {
@@ -56,16 +58,22 @@ class FirestoreProvider extends ChangeNotifier {
     await FirebaseFirestore.instance.collection('users').doc(uid).update({
       'readArticles': FieldValue.arrayUnion([articleId])
     });
+    _readArticles.add(articleId);
+    notifyListeners();
   }
 
-  Future<List<int>> getReadArticles(String uid) async {
+  Future<List<int>> getReadArticles(String uid, {bool refresh = false}) async {
+    if (_readArticles.isNotEmpty && !refresh) {
+      return _readArticles;
+    }
     var snap =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
     if (snap.data()!.containsKey('readArticles')) {
-      return snap.get('readArticles').cast<int>();
+      _readArticles = snap.get('readArticles').cast<int>();
     } else {
-      return <int>[];
+      _readArticles = [];
     }
+    return _readArticles;
   }
 
   Future<void> setNewsletterAddress(String uid, String address) async {

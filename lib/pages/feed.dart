@@ -20,18 +20,16 @@ class _FeedState extends State<Feed> {
   String selected = 'relevance';
   @override
   Widget build(BuildContext context) {
-    Future<List<ArticleData>> feed = Provider.of<FirestoreProvider>(context)
-        .getReadArticles(FirebaseAuth.instance.currentUser!.uid)
-        .then((readArticles) {
-      // get the feed from the API
-      return Provider.of<APIProvider>(context, listen: false)
-          .sortAndGetFeed(selected, readArticles);
-    });
+    Future<List<ArticleData>> feed =
+        Provider.of<APIProvider>(context, listen: true).getFeed(refresh: false);
+
+    Future<List<int>> read =
+        Provider.of<FirestoreProvider>(context, listen: true)
+            .getReadArticles(FirebaseAuth.instance.currentUser!.uid);
 
     return FutureBuilder(
-        future: feed,
-        builder:
-            (BuildContext context, AsyncSnapshot<List<ArticleData>> snapshot) {
+        future: Future.wait([feed, read]),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -131,6 +129,17 @@ class _FeedState extends State<Feed> {
               ),
             );
           }
+
+          var feed = snapshot.data!.first as List<ArticleData>;
+          var read = snapshot.data!.last as List<int>;
+          for (var a in feed) {
+            if (read.contains(a.id)) {
+              a.read = true;
+              feed.remove(a);
+              feed.add(a);
+            }
+          }
+
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -195,16 +204,10 @@ class _FeedState extends State<Feed> {
                               false, // This is to make the DropdownButton take the full width of the Container
                           value: selected,
                           onChanged: (String? value) async {
-                            var uid = FirebaseAuth.instance.currentUser!.uid;
-                            Provider.of<FirestoreProvider>(context,
-                                    listen: false)
-                                .getReadArticles(uid)
-                                .then((read) {
-                              Provider.of<APIProvider>(context, listen: false)
-                                  .sortBy(value!, read);
-                            });
+                            Provider.of<APIProvider>(context, listen: false)
+                                .sortBy(value!);
                             setState(() {
-                              selected = value!;
+                              selected = value;
                             });
                           },
                           items: const [
@@ -234,9 +237,9 @@ class _FeedState extends State<Feed> {
                           .getFeed(refresh: true);
                     },
                     child: ListView.builder(
-                      itemCount: snapshot.data!.length,
+                      itemCount: feed.length,
                       itemBuilder: (BuildContext context, int index) {
-                        return ArticleCard(article: snapshot.data![index]);
+                        return ArticleCard(article: feed[index]);
                       },
                     ),
                   ),

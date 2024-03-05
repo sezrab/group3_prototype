@@ -24,7 +24,7 @@ class ArticleCard extends StatelessWidget {
       child: Card(
         // background color white
         // on tap, go to article page
-        color: Colors.white,
+        color: article.read ? Colors.red.shade200 : Colors.white,
         // grey border
         shape: RoundedRectangleBorder(
           side: BorderSide(color: Colors.grey.shade300, width: 1),

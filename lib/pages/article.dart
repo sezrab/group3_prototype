@@ -20,6 +20,7 @@ class ArticlePage extends StatelessWidget {
   Widget build(BuildContext context) {
     Provider.of<FirestoreProvider>(context, listen: false)
         .setArticleRead(FirebaseAuth.instance.currentUser!.uid, article.id);
+    // Provider.of<APIProvider>(context, listen: false).getFeed();
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,6 +42,13 @@ class ArticlePage extends StatelessWidget {
                 children: [
                   // back button
                   // article.publishedAt (datetime object) as DD/MM/YYYY
+                  Text(
+                    "read: ${article.read}",
+                    style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                  ),
                   Text(
                     article.publishedAt.toLocal().toString().split(' ')[0],
                     style: Theme.of(context).textTheme.titleSmall!.copyWith(

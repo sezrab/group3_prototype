@@ -45,22 +45,13 @@ class APIProvider extends ChangeNotifier {
     }
   }
 
-  void sortBy(String sort, List<int> read) {
+  void sortBy(String sort) {
     if (sort == 'newest') {
       feed.sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
     } else if (sort == 'oldest') {
       feed.sort((a, b) => a.publishedAt.compareTo(b.publishedAt));
     } else if (sort == 'relevance') {
       feed.sort((a, b) => a.relevance.compareTo(b.relevance));
-    }
-
-    for (var a in feed) {
-      if (read.contains(a.id)) {
-        a.read = true;
-        // move a to the end of the list
-        feed.remove(a);
-        feed.add(a);
-      }
     }
 
     notifyListeners();
@@ -71,11 +62,6 @@ class APIProvider extends ChangeNotifier {
       await requestFeed(FirebaseAuth.instance.currentUser!.uid);
     }
     return feed;
-  }
-
-  Future<List<ArticleData>> sortAndGetFeed(String sort, List<int> read) async {
-    sortBy(sort, read);
-    return getFeed();
   }
 
   Future<void> requestFeed(String userID) async {
